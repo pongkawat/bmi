@@ -59,7 +59,7 @@
             border-radius: 5px;
             font-size: 16px;
         }
-        input[type="submit"] {
+        input[type="button"] {
             background-color: #007bff;
             color: white;
             padding: 10px 20px;
@@ -68,8 +68,21 @@
             cursor: pointer;
             font-size: 18px;
         }
-        input[type="submit"]:hover {
+        input[type="button"]:hover {
             background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        .bmi-result {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        .category {
+            font-size: 20px;
+            color: #ff6f61;
         }
     </style>
 </head>
@@ -80,15 +93,92 @@
     </header>
     <div class="container">
         <h1>คำนวณค่า BMI</h1>
-        <form action="calculate_bmi.php" method="POST">
-            <label for="weight">น้ำหนัก (กิโลกรัม):</label>
-            <input type="number" id="weight" name="weight" required>
+        <label for="weight">น้ำหนัก (กิโลกรัม):</label>
+        <input type="number" id="weight" required>
 
-            <label for="height">ส่วนสูง (เซนติเมตร):</label>
-            <input type="number" id="height" name="height" required>
+        <label for="height">ส่วนสูง (เซนติเมตร):</label>
+        <input type="number" id="height" required>
 
-            <input type="submit" value="คำนวณ BMI">
-        </form>
+        <input type="button" value="คำนวณ BMI" onclick="calculateBMI()">
+        <div class="result" id="bmiResult"></div>
     </div>
+
+    <script>
+        function calculateBMI() {
+            const weight = parseFloat(document.getElementById('weight').value);
+            const height = parseFloat(document.getElementById('height').value) / 100;
+
+            if (isNaN(weight) || isNaN(height) || weight <= 0 || height <= 0) {
+                document.getElementById('bmiResult').innerHTML = "<p style='color: red;'>กรุณากรอกข้อมูลที่ถูกต้อง</p>";
+                return;
+            }
+
+            const bmi = weight / (height * height);
+            const bmiFormatted = bmi.toFixed(2);
+            let category = "";
+            let risk = "";
+            let recommendations = "";
+
+            if (bmi < 18.5) {
+                category = "น้ำหนักน้อย / ผอม";
+                risk = "มากกว่าคนปกติ";
+                recommendations = `
+                    <ul>
+                        <li>กินอาหารที่มีพลังงานสูง เช่น ข้าว, เนื้อสัตว์, ผลิตภัณฑ์นม</li>
+                        <li>เพิ่มปริมาณโปรตีน เช่น เนื้อสัตว์, ถั่ว, และไข่</li>
+                        <li>ออกกำลังกายเสริมสร้างกล้ามเนื้อ เช่น ยกน้ำหนัก</li>
+                        <li>รับประทานอาหารเป็นประจำและสม่ำเสมอ</li>
+                    </ul>
+                `;
+            } else if (bmi >= 18.5 && bmi <= 22.9) {
+                category = "ปกติ (สุขภาพดี)";
+                risk = "เท่าคนปกติ";
+                recommendations = `
+                    <ul>
+                        <li>รักษาน้ำหนักด้วยการออกกำลังกายสม่ำเสมอ</li>
+                        <li>กินอาหารครบ 5 หมู่ในปริมาณที่เหมาะสม</li>
+                        <li>ดื่มน้ำให้เพียงพอและนอนหลับให้เพียงพอ</li>
+                    </ul>
+                `;
+            } else if (bmi >= 23 && bmi <= 24.9) {
+                category = "ท้วม / โรคอ้วนระดับ 1";
+                risk = "อันตรายระดับ 1";
+                recommendations = `
+                    <ul>
+                        <li>ลดปริมาณอาหารที่มีไขมันและน้ำตาล</li>
+                        <li>เพิ่มการออกกำลังกาย เช่น การเดินเร็ว</li>
+                        <li>หลีกเลี่ยงการดื่มแอลกอฮอล์</li>
+                    </ul>
+                `;
+            } else if (bmi >= 25 && bmi <= 29.9) {
+                category = "อ้วน / โรคอ้วนระดับ 2";
+                risk = "อันตรายระดับ 2";
+                recommendations = `
+                    <ul>
+                        <li>ควบคุมปริมาณอาหารให้สมดุล</li>
+                        <li>ออกกำลังกายแบบคาร์ดิโอ เช่น วิ่งหรือปั่นจักรยาน</li>
+                        <li>ลดการบริโภคขนมหวานและอาหารทอด</li>
+                    </ul>
+                `;
+            } else {
+                category = "อ้วนมาก / โรคอ้วนระดับ 3";
+                risk = "อันตรายระดับ 3";
+                recommendations = `
+                    <ul>
+                        <li>ปรึกษาผู้เชี่ยวชาญเพื่อพัฒนาแผนการลดน้ำหนัก</li>
+                        <li>ออกกำลังกายอย่างต่อเนื่องและควบคุมอาหาร</li>
+                        <li>เน้นกินผัก ผลไม้ และโปรตีนไร้ไขมัน</li>
+                    </ul>
+                `;
+            }
+
+            document.getElementById('bmiResult').innerHTML = `
+                <p>ค่า BMI ของคุณคือ: <span class="bmi-result">${bmiFormatted}</span></p>
+                <p class="category">ประเภท: ${category}</p>
+                <p>ภาวะเสี่ยงต่อโรค: ${risk}</p>
+                <p><strong>ข้อแนะนำ:</strong></p> ${recommendations}
+            `;
+        }
+    </script>
 </body>
 </html>
